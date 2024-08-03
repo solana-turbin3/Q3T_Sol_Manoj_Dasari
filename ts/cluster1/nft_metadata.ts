@@ -12,32 +12,38 @@ const signer = createSignerFromKeypair(umi, keypair);
 umi.use(irysUploader());
 umi.use(signerIdentity(signer));
 
+const imageUri = "https://arweave.net/-OkvGq_N9_DU1oaRECEa9ugKSfdX2UE3cDQ9J3tApBA";
+
 (async () => {
     try {
         // Follow this JSON structure
         // https://docs.metaplex.com/programs/token-metadata/changelog/v1.0#json-structure
 
-        // const image = ???
-        // const metadata = {
-        //     name: "?",
-        //     symbol: "?",
-        //     description: "?",
-        //     image: "?",
-        //     attributes: [
-        //         {trait_type: '?', value: '?'}
-        //     ],
-        //     properties: {
-        //         files: [
-        //             {
-        //                 type: "image/png",
-        //                 uri: "?"
-        //             },
-        //         ]
-        //     },
-        //     creators: []
-        // };
-        // const myUri = ???
-        // console.log("Your metadata URI: ", myUri);
+        // const image = "https://arweave.net/-OkvGq_N9_DU1oaRECEa9ugKSfdX2UE3cDQ9J3tApBA";
+        const metadata = {
+            name: "Rug Master",
+            symbol: "RGM",
+            description: "Master of RUG PULL",
+            image: "https://arweave.net/-OkvGq_N9_DU1oaRECEa9ugKSfdX2UE3cDQ9J3tApBA",
+            attributes: [
+                // {trait_type: '?', value: '?'}
+            ],
+            properties: {
+                files: [
+                    {
+                        type: "image/png",
+                        uri: "https://arweave.net/-OkvGq_N9_DU1oaRECEa9ugKSfdX2UE3cDQ9J3tApBA"
+                    },
+                ]
+            },
+            creators: []
+        };
+        const metadataJsonString = JSON.stringify(metadata);
+        const metadataArray = new Uint8Array(Buffer.from(metadataJsonString));
+        const metadataFile = createGenericFile(metadataArray, "metadata.json");
+        const metadataUris = await umi.uploader.upload([metadataFile]); 
+        const myUri = metadataUris[0];
+        console.log("Your metadata URI: ", myUri);
     }
     catch(error) {
         console.log("Oops.. Something went wrong", error);
