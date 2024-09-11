@@ -1,3 +1,10 @@
+# Introduction
+
+This repo showcases work done for the WBA Turbine 2024 Q3 Cohort, as well as some other related Solana and frontend development work. I am open for work; you can reach me via:
+
+> X: [@dasarimanoj265](https://x.com/dasarimanoj265) | Discord: dasarimanoj | Email: [dasarimanoj265@gmail.com](mailto:dasarimanoj265@gmail.com)
+
+
 # General Portfolio
 
 # Turbine3 Work
