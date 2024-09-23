@@ -30,4 +30,8 @@ impl User {
     pub fn increase_draws(&mut self) {
         self.total_draws += 1;
     }
+
+    pub fn decrease_bets(&mut self) {
+        self.total_bets -= 1;
+    }
 }

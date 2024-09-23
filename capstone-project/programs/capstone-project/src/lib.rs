@@ -1,11 +1,11 @@
 use anchor_lang::prelude::*;
 
-pub mod instructions;
+pub mod contexts;
 pub mod errors;
 pub mod state;
 
-pub use instructions::*;
-pub use error::*;
+pub use contexts::*;
+pub use errors::*;
 pub use state::*;
 
 declare_id!("E5kv2j41SfsrZyCeEohk8SQ3i71Yzgiv32ey8ekeL5mQ");
@@ -42,6 +42,26 @@ pub mod prediction_market {
             seed,
             &ctx.bumps,
         )
+    }
+
+    pub fn accept_bet(ctx: Context<AcceptBet>, _seed: u64) -> Result<()> {
+        ctx.accounts.accept_bet(&ctx.bumps)
+    }
+    pub fn cancel_bet(ctx: Context<CancelBet>, _seed: u64) -> Result<()> {
+        ctx.accounts.cancel_bet()
+    }
+
+    pub fn check_winner(ctx:Context<CheckWinner>,_seed:u64)->Result<()>{
+        ctx.accounts.check_winner()
+    }
+
+    pub fn claim_prize(ctx:Context<ClaimPrize>,_seed:u64)->Result<()>{
+        ctx.accounts.claim_prize()
+    }
+
+    //used for withdrawal money from the protocol treasury
+    pub fn withdraw_treasury(ctx: Context<WithdrawTreasury>) -> Result<()> {
+        ctx.accounts.withdraw_treasury()
     }
 }
 
