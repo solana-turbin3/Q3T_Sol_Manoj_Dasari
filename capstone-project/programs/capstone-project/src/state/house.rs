@@ -9,5 +9,5 @@ pub struct House {
 }
 
 impl Space for House {
-    const INIT_SPACE: usize = 8 + 8 + 2 + (1 * 8);
+    const INIT_SPACE: usize = 8 + 32 + 2 + 1+1;
 }

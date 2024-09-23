@@ -6,7 +6,6 @@ use crate::state::House;
 pub struct Init<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
-
     #[account(
         init,
         payer = admin,

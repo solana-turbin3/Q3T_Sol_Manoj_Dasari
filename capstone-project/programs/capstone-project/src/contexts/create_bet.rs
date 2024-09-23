@@ -3,7 +3,12 @@ use anchor_lang::{
     system_program::{transfer, Transfer},
 };
 
-use crate::{state::Bet, BetStatus, Odds};
+// ! Using Pull-On-Demand from Switchboard, not the push version
+// Switchboard import 
+use switchboard_on_demand::on_demand::accounts::pull_feed::PullFeedAccountData;
+use solana_program::account_info::AccountInfo;
+
+use crate::{errors::Errors, state::Bet, BetStatus, Odds, User};
 
 #[derive(Accounts)]
 #[instruction(seed:u64)]
@@ -17,12 +22,20 @@ pub struct CreateBet<'info> {
         seeds=[b"bet",maker.key().as_ref(),seed.to_le_bytes().as_ref()],
         bump
     )]
-    pub bet: Account<'info, Bet>, 
+    pub bet: Account<'info, Bet>,
     #[account(
         seeds=[b"vault",bet.key().as_ref()],
         bump
     )]
-    pub vault_pool:SystemAccount<'info>,  
+    pub vault_pool: SystemAccount<'info>,
+    #[account(
+        init_if_needed,
+        payer=maker,
+        space=User::INIT_SPACE,
+        seeds=[b"user_profile",maker.key().as_ref()],
+        bump
+    )]
+    pub user_account: Account<'info, User>,
     pub system_program: Program<'info, System>,
 }
 
@@ -40,26 +53,54 @@ impl<'info> CreateBet<'info> {
         seed: u64,
         bumps: &CreateBetBumps,
     ) -> Result<()> {
+        //calculate the depositing amount
+        require!(maker_odds == 1 || opponent_odds == 1, Errors::InvalidOdds);
+        let odds = Odds {
+            maker_odds,
+            opponent_odds,
+        };
+        let opponent_deposit = self.calculate_opponent_deposit(amount, &odds);
         self.bet.set_inner(Bet {
             maker: self.maker.key(),
             opponent: None,
             token_mint,
-            odds: Odds {
-                maker_odds,
-                opponent_odds,
-            },
+            odds,
             status: BetStatus::FindingOpponent,
             price_prediction,
             deadline_to_join,
             start_time,
             end_time,
-            amount, //sol stored in lamports 
+            maker_deposit: amount, //sol stored in lamports
             amount_settled: false,
             seed,
             bump: bumps.bet,
-            vault_pool:bumps.vault_pool
+            vault_pool_bump: bumps.vault_pool,
+            opponent_deposit, //sol in lamports
+            winner: None,
         });
+
+        let user = &mut self.user_account;
+
+        if user.total_bets == 0
+            && user.total_winnings == 0
+            && user.total_losses == 0
+            && user.total_draws == 0
+        {
+            user.total_bets = 0;
+            user.total_winnings = 0;
+            user.total_losses = 0;
+            user.total_draws = 0;
+            user.bump = bumps.user_account
+        }
+        self.user_account.increase_bets();
         self.send_money_to_vault(amount)
+    }
+
+    pub fn calculate_opponent_deposit(&mut self, maker_deposit: u64, odds: &Odds) -> u64 {
+        if odds.maker_odds == 1 {
+            return maker_deposit * odds.opponent_odds;
+        }
+        maker_deposit / odds.maker_odds
     }
 
     pub fn send_money_to_vault(&mut self, amount: u64) -> Result<()> {
