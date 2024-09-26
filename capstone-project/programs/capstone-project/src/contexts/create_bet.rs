@@ -50,6 +50,12 @@ impl<'info> CreateBet<'info> {
     ) -> Result<()> {
         //calculate the depositing amount
         require!(maker_odds == 1 || opponent_odds == 1, Errors::InvalidOdds);
+        let clock = Clock::get()?;
+       require!(deadline_to_join > clock.unix_timestamp, Errors::InvalidDeadline);
+       require!(start_time > deadline_to_join, Errors::InvalidStartTime);
+       require!(end_time > start_time, Errors::InvalidEndTime);
+       require!(amount > 0, Errors::InsufficientFunds);
+       
         let odds = Odds {
             maker_odds,
             opponent_odds,

@@ -36,18 +36,21 @@ impl<'info> ClaimPrize<'info> {
         require!(bet.status==BetStatus::Completed,Errors::BetNotResolvedYet);
         //TODO:MAY BE DO SOME MORE CHECKS IF NEEDED
         self.transfer_amount()
-}
+    }
     pub fn transfer_amount(&mut self)->Result<()>{
-        let amount=self.vault_pool.lamports();
+        let total_amount= self.vault_pool.lamports();
+        let protocol_fee = total_amount / 100; // Example: 1% fee
+        let amount_to_transfer = total_amount - protocol_fee;
         let accounts=Transfer{
                 from:self.vault_pool.to_account_info(),
                 to:self.winner.to_account_info()
         };
-        let binding_key=self.maker.key();
-        let bump_binding=[self.bet.vault_pool_bump];
-        let signer_seeds=&[&[b"vault",binding_key.as_ref(),&bump_binding][..]];
-        let ctx=CpiContext::new_with_signer(self.system_program.to_account_info(), accounts, signer_seeds);
+        let binding_key= self.maker.key();
+        let bump_binding= [self.bet.vault_pool_bump];
+        let signer_seeds= &[&[b"vault",binding_key.as_ref(),&bump_binding][..]];
+        let ctx= CpiContext::new_with_signer(self.system_program.to_account_info(), accounts, signer_seeds);
         //TODO: Need to cut some fees for protocol
-        transfer(ctx, amount)
+        transfer(ctx, amount_to_transfer)?;
+        Ok(())
     }
 }
