@@ -3,11 +3,6 @@ use anchor_lang::{
     system_program::{transfer, Transfer},
 };
 
-// ! Using Pull-On-Demand from Pyth, not the push version
-// Pyth price feed import 
-use pyth_solana_receiver_sdk::price_update::PriceUpdateV2;
-use solana_program::account_info::AccountInfo;
-
 use crate::{errors::Errors, state::Bet, BetStatus, Odds, User};
 
 #[derive(Accounts)]
@@ -52,7 +47,6 @@ impl<'info> CreateBet<'info> {
         amount: u64,
         seed: u64,
         bumps: &CreateBetBumps,
-        pyth_price_account: Pubkey,
     ) -> Result<()> {
         //calculate the depositing amount
         require!(maker_odds == 1 || opponent_odds == 1, Errors::InvalidOdds);
@@ -78,7 +72,6 @@ impl<'info> CreateBet<'info> {
             vault_pool_bump: bumps.vault_pool,
             opponent_deposit, //sol in lamports
             winner: None,
-            pyth_price_account,
         });
 
         let user = &mut self.user_account;
