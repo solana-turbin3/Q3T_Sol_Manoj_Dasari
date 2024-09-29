@@ -85,6 +85,8 @@ describe("capstone-project", () => {
 
   // Start creating the bet 
   it("Create a bet", async () => {
+    const makerBalanceBefore = await connection.getBalance(maker.publicKey);
+
     const tx = await program.methods.createBet(
       betSeed, 
       tokenMint,
@@ -94,7 +96,42 @@ describe("capstone-project", () => {
       deadlineToJoin,
       startTime,
       endTime,
-      amount).accountsPartial({});
+      amount).accountsPartial({
+        maker: maker.publicKey,
+        bet: betPda,
+        vaultPool: vaultPoolPda,
+        userAccount: userAccountPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([maker])
+      .rpc();
+
+      console.log("Bet creation Transaction Signature - ", tx);
+
+      await confirmTx(tx);
+
+      // Fetch the bet account and assert its data
+      const betAccount = await program.account.bet.fetch(betPda);
+      const vaultBalance = await connection.getBalance(vaultPoolPda);
+      const makerBalanceAfter = await connection.getBalance(maker.publicKey);
+
+      assert.equal(vaultBalance, amount.toNumber());
+      assert.isAtMost(makerBalanceAfter, makerBalanceBefore - amount.toNumber());
+
+      assert.ok(betAccount.maker.equals(maker.publicKey));
+      assert.ok(betAccount.tokenMint.equals(tokenMint));
+      assert.ok(betAccount.odds.makerOdds.eq(makerOdds));
+      assert.ok(betAccount.odds.opponentOdds.eq(opponentOdds));
+      assert.ok(betAccount.pricePrediction.eq(pricePrediction));
+      assert.ok(betAccount.deadlineToJoin.eq(deadlineToJoin));
+      assert.ok(betAccount.startTime.eq(startTime));
+      assert.ok(betAccount.endTime.eq(endTime));
+      assert.ok(betAccount.makerDeposit.eq(amount));
+      assert.equal(betAccount.status, { findingOpponent: {} });
+  })
+
+  // Cancelling the created bet for testing 
+  it("Cancel the bet", async () => {
   })
 });
   
