@@ -19,7 +19,8 @@ pub struct CheckWinner<'info> {
     )]
     pub bet: Account<'info, Bet>,
     //also if necessary we need to add the both user accounts for updating there states
-    // Adding the Pyth price feed account
+    // Adding the Switchboard price data feed account/program ID
+    
 }
  
 impl<'info> CheckWinner<'info> {

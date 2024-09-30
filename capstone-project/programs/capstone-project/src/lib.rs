@@ -29,7 +29,7 @@ pub mod prediction_market {
         start_time: i64,
         end_time: i64,
         amount: u64,
-        // pyth_price_account: Pubkey,
+        
     ) -> Result<()> {
         ctx.accounts.create_bet(
             token_mint,
@@ -42,7 +42,7 @@ pub mod prediction_market {
             amount,
             seed,
             &ctx.bumps,
-            // pyth_price_account, pass this account
+            // pass swithcboard here
         )
     }
 
@@ -52,7 +52,8 @@ pub mod prediction_market {
     pub fn cancel_bet(ctx: Context<CancelBet>, _seed: u64) -> Result<()> {
         ctx.accounts.cancel_bet()
     }
-
+    
+    //TODO - feedInjector invocation should be implemented here
     pub fn check_winner(ctx:Context<CheckWinner>,_seed:u64)->Result<()>{
         ctx.accounts.check_winner()
     }

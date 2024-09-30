@@ -195,7 +195,7 @@ describe("capstone-project", () => {
 
       await confirmTx(tx);
 
-      // Fetch the bet account and assert its data
+      // Fetching the bet account nd assertig its data
       const betAccount = await program.account.bet.fetch(betPda);
       const vaultBalance = await connection.getBalance(vaultPoolPda);
       const makerBalanceAfter = await connection.getBalance(maker.publicKey);
@@ -227,7 +227,7 @@ describe("capstone-project", () => {
       userAccount: userAccountPda,
       systemProgram: SystemProgram.programId, 
     })
-    .signers([maker])
+    .signers([betTaker])
     .rpc();
 
     console.log("Accepting bet Transaction Signature - ", tx);
@@ -247,6 +247,27 @@ describe("capstone-project", () => {
     assert.equal(vaultBalanceAfter, vaultBalanceBefore + amount.toNumber() - feesAmount);
     assert.isAtMost(takerBalanceAfter, takerBalanceBefore - amount.toNumber());
     assert.equal(treasuryBalanceAfter, feesAmount);
+  })
+
+   // Simulate time passing
+   it("Simulate time passing", async () => {
+    await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for 5 seconds
+  });
+
+  //TODO: feedInjector should be added to check the real-time data in lib.rs, bet.rs, create_bet.rs and resolve_bet.rs
+  // Checking the winner after some time has passed
+  it("Checking the winner", async () => {
+  const tx = await program.methods.checkWinner(betSeed)
+    .accountsPartial({
+      signer: admin.publicKey,
+      maker: maker.publicKey,
+      opponent: betTaker.publicKey,
+      bet: betPda,
+    })
+    .signers([admin])
+    .rpc();
+
+    const betAccount = await program.account.bet.fetch(betPda);
   })
 });
   
