@@ -53,9 +53,14 @@ pub mod prediction_market {
         ctx.accounts.cancel_bet()
     }
     
+    pub fn check_winner_dummy(ctx: Context<CheckWinner>, seed: u64) -> Result<()> {
+        ctx.accounts.check_winner__bet_dummy()
+    }
+
     //TODO - feedInjector invocation should be implemented here
     pub fn check_winner(ctx:Context<CheckWinner>,_seed:u64)->Result<()>{
-        ctx.accounts.check_winner()
+        ctx.accounts.check_winner();
+        ctx.accounts.check_winner_bet_switchboard()
     }
 
     pub fn claim_prize(ctx:Context<ClaimPrize>,_seed:u64)->Result<()>{

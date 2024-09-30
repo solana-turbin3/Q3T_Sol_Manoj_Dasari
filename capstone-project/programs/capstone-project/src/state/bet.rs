@@ -18,6 +18,7 @@ pub struct Bet {
     pub vault_pool_bump: u8,
     pub opponent_deposit: u64, //in lamports should store
     pub winner: Option<Pubkey>,
+    pub feed_injector: Pubkey, // pull on-demand price data feed constant
     //TODO - feed_injector constant should be defined here
 }
 
@@ -53,5 +54,6 @@ impl Space for Bet {
         + 1    // u8 for bump
         + 1    // u8 for vault_pool_bump
         + 8    // u64 for opponent_deposit
-        + 1 + 32; // Option<Pubkey> for winner (1 byte for option + 32 bytes for Pubkey)
+        + 1 + 32 // Option<Pubkey> for winner (1 byte for option + 32 bytes for Pubkey)
+        + 32; // Pubkey for feed_injector
 }

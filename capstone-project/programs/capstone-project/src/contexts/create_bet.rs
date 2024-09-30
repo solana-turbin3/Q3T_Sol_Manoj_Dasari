@@ -47,6 +47,7 @@ impl<'info> CreateBet<'info> {
         amount: u64,
         seed: u64,
         bumps: &CreateBetBumps,
+        feed_injector: Pubkey,
         //TODO - feed_injector assigned here
     ) -> Result<()> {
         //calculate the depositing amount
@@ -79,6 +80,7 @@ impl<'info> CreateBet<'info> {
             vault_pool_bump: bumps.vault_pool,
             opponent_deposit, //sol in lamports
             winner: None,
+            feed_injector,
         });
 
         let user = &mut self.user_account;
