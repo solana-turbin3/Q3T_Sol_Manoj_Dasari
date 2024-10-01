@@ -3,10 +3,11 @@ import { Program } from "@coral-xyz/anchor";
 import { PredictionMarket } from "../target/types/prediction_market";
 import { Keypair, SystemProgram, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { assert } from "chai";
+import { Commitment } from "@solana/web3.js"
 
 //* swithcboard sol/usd devnet price data feed ID = "8g6zZtZFLJCRBm85rZbMws3ce2oqzzDKEGBj9wQGp1kY"
 
-const commitment = "confirmed";
+const commitment: Commitment = "confirmed";
 
 describe("capstone-project", () => {
   // Configure the client to use the local cluster.
