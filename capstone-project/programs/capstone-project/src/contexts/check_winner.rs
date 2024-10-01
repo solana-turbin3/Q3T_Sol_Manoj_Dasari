@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 
+use switchboard_on_demand::{on_demand::accounts::pull_feed::PullFeedAccountData, prelude::rust_decimal::{prelude::{FromPrimitive, ToPrimitive}, Decimal}};
+
 use crate::errors::Errors;
 use crate::state::Bet;
 

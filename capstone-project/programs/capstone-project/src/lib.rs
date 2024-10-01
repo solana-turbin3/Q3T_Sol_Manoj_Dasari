@@ -12,6 +12,8 @@ declare_id!("E5kv2j41SfsrZyCeEohk8SQ3i71Yzgiv32ey8ekeL5mQ");
 
 #[program]
 pub mod prediction_market {
+    use anchor_spl::token_2022::spl_token_2022::solana_zk_token_sdk::instruction::PubkeyValidityProofContext;
+
     use super::*;
 
     pub fn initialize_protocol(ctx: Context<Init>, fees: i16) -> Result<()> {
@@ -29,6 +31,7 @@ pub mod prediction_market {
         start_time: i64,
         end_time: i64,
         amount: u64,
+        feed_injector: Pubkey,
         
     ) -> Result<()> {
         ctx.accounts.create_bet(
@@ -43,6 +46,7 @@ pub mod prediction_market {
             seed,
             &ctx.bumps,
             // pass swithcboard here
+            feed_injector,
         )
     }
 

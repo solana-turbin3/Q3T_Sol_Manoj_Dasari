@@ -254,7 +254,10 @@ describe("capstone-project", () => {
     await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for 5 seconds
   });
 
-  //TODO: feedInjector should be added to check the real-time data in lib.rs, bet.rs, create_bet.rs and resolve_bet.rs
+  //TODO: feedInjector should be added to check the real-time data in lib.rs, bet.rs, create_bet.rs and check_winner.rs
+  //& [x] lib.rs 
+  //& [x] bet.rs 
+  //& [x] create_bet.rs 
   // Checking the winner after some time has passed
   it("Checking the winner", async () => {
   const tx = await program.methods.checkWinner(betSeed)
