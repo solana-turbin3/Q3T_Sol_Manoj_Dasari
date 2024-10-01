@@ -290,7 +290,11 @@ describe("capstone-project", () => {
 
   //? claiming prizes to whomever has won the prediction
   it("Claiming the rewards", async () => {
-    
+    const vaultPoolBalanceBefore = await connection.getBalance(vaultPoolPda);
+    const tx = await program.methods.claimPrize(betSeed)
+      .accountsPartial({
+        winner: maker.publicKey,
+      })
   })
 });
   
