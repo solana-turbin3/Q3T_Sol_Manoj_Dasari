@@ -7,7 +7,8 @@ pub struct Bet {
     pub token_mint: Pubkey, //the token mint he want to predict bet on
     pub odds: Odds,
     pub status: BetStatus,
-    pub price_prediction: i64, // price prediction of the token_mint he provided
+    pub price_prediction: i64, // price prediction of the token_mint he provided 
+    pub creator_estimate: bool, //TODO - should be added to the test cases
     pub deadline_to_join: i64, //opponent can join before this
     pub start_time: i64,       //bet start
     pub end_time: i64,         //bet end
@@ -18,8 +19,8 @@ pub struct Bet {
     pub vault_pool_bump: u8,
     pub opponent_deposit: u64, //in lamports should store
     pub winner: Option<Pubkey>,
-    pub feed_injector: Pubkey, // pull on-demand price data feed constant
     //TODO - feed_injector constant should be defined here
+    pub feed_injector: Pubkey, // pull on-demand price data feed constant //TODO - should be added to the test cases
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
@@ -45,6 +46,7 @@ impl Space for Bet {
         + 8    // u64 for opponent_odds
         + 1    // BetStatus enum (1 byte)
         + 8    // i64 for price_prediction
+        + 1    // bool for creator_estimate
         + 8    // i64 for deadline_to_join
         + 8    // i64 for start_time
         + 8    // i64 for end_time

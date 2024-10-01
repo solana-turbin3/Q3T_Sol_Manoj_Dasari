@@ -12,8 +12,6 @@ declare_id!("E5kv2j41SfsrZyCeEohk8SQ3i71Yzgiv32ey8ekeL5mQ");
 
 #[program]
 pub mod prediction_market {
-    use anchor_spl::token_2022::spl_token_2022::solana_zk_token_sdk::instruction::PubkeyValidityProofContext;
-
     use super::*;
 
     pub fn initialize_protocol(ctx: Context<Init>, fees: i16) -> Result<()> {
@@ -27,26 +25,26 @@ pub mod prediction_market {
         maker_odds: u64,
         opponent_odds: u64,
         price_prediction: i64,
+        creator_estimate: bool, //TODO - should be added to the test cases
         deadline_to_join: i64,
         start_time: i64,
         end_time: i64,
         amount: u64,
-        feed_injector: Pubkey,
-        
+        feed_injector: Pubkey, //TODO - should be added to the test cases   
     ) -> Result<()> {
         ctx.accounts.create_bet(
             token_mint,
             maker_odds,
             opponent_odds,
             price_prediction,
+            creator_estimate, //TODO - should be added to the test cases
             deadline_to_join,
             start_time,
             end_time,
             amount,
             seed,
             &ctx.bumps,
-            // pass swithcboard here
-            feed_injector,
+            feed_injector, //TODO - should be added to the test cases
         )
     }
 
@@ -57,13 +55,13 @@ pub mod prediction_market {
         ctx.accounts.cancel_bet()
     }
     
-    pub fn check_winner_dummy(ctx: Context<CheckWinner>, seed: u64) -> Result<()> {
-        ctx.accounts.check_winner__bet_dummy()
+    pub fn check_winner_dummy(ctx: Context<CheckWinner>, _seed: u64) -> Result<()> {
+        ctx.accounts.check_winner_bet_dummy()
     }
 
-    //TODO - feedInjector invocation should be implemented here
+    //TODO - feedInjector invocation is be implemented here
     pub fn check_winner(ctx:Context<CheckWinner>,_seed:u64)->Result<()>{
-        ctx.accounts.check_winner();
+        let _ = ctx.accounts.check_winner();
         ctx.accounts.check_winner_bet_switchboard()
     }
 

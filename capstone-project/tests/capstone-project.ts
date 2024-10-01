@@ -6,29 +6,31 @@ import { assert } from "chai";
 import { Commitment } from "@solana/web3.js"
 
 //* swithcboard sol/usd devnet price data feed ID = "8g6zZtZFLJCRBm85rZbMws3ce2oqzzDKEGBj9wQGp1kY"
+const solUsdSwitchboardFeedDevnet = "8g6zZtZFLJCRBm85rZbMws3ce2oqzzDKEGBj9wQGp1kY";
 
 const commitment: Commitment = "confirmed";
 
 describe("capstone-project", () => {
-  // Configure the client to use the local cluster.
+  //? Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
   const provider = anchor.getProvider();
   const connection = provider.connection;;
 
   const program = anchor.workspace.PriceBetting as Program<PredictionMarket>;
 
-  // setup admin, betCreator, betTaker keys
+  //? setup admin, betCreator, betTaker keys
   const [ admin, maker, betTaker ] = Array(3).fill(null).map(() => anchor.web3.Keypair.generate());
   console.log("Admin wallet: ", admin.publicKey.toBase58());
   console.log("maker wallet: ", maker.publicKey.toBase58());
   console.log("opponent wallet: ", betTaker.publicKey.toBase58());
 
-  // defining the constants
+  //? defining the constants
   const betSeed = new anchor.BN(100);
   const tokenMint = anchor.web3.Keypair.generate().publicKey;
   const makerOdds = new anchor.BN(2);
   const opponentOdds = new anchor.BN(3);
   const pricePrediction = new anchor.BN(1000);
+  const creatorEstimate = true;
   const deadlineToJoin = new anchor.BN(Date.now() + 3600000); // 1 hour from now
   const startTime = new anchor.BN(Date.now() + 7200000); // 2 hours from now
   const endTime = new anchor.BN(Date.now() + 10800000); // 3 hours from now
@@ -56,14 +58,14 @@ describe("capstone-project", () => {
     program.programId
   );
 
-   // Airdrop sol to admin, maker, betTaker
+   //? Airdrop sol to admin, maker, betTaker
    it("Airdrop some sol", async () => {
     await Promise.all([ admin, maker, betTaker].map(async (k) => {
       return await anchor.getProvider().connection.requestAirdrop(k.publicKey, 100 * anchor.web3.LAMPORTS_PER_SOL)
     })).then(confirmTxs);
   });
 
-  // Initialize the house 
+  //? Initializing the house 
   it("Initialize the protocol", async () => {
     const tx = await program.methods.initializeProtocol(fees)
       .accountsPartial({
@@ -84,7 +86,7 @@ describe("capstone-project", () => {
       assert.equal(initializedBetHouse.protoclFees, fees);
   })
 
-  // Start creating the bet 
+  //? Start creating the bet 
   //TODO: feedInjector should be added to check the real-time data in lib.rs, bet.rs, create_bet.rs and resolve_bet.rs
   it("Create a bet", async () => {
     const makerBalanceBefore = await connection.getBalance(maker.publicKey);
@@ -95,10 +97,12 @@ describe("capstone-project", () => {
       makerOdds,
       opponentOdds,
       pricePrediction,
+      creatorEstimate,
       deadlineToJoin,
       startTime,
       endTime,
-      amount).accountsPartial({
+      amount,
+      new PublicKey(solUsdSwitchboardFeedDevnet)).accountsPartial({
         maker: maker.publicKey,
         bet: betPda,
         vaultPool: vaultPoolPda,
@@ -112,7 +116,7 @@ describe("capstone-project", () => {
 
       await confirmTx(tx);
 
-      // Fetch the bet account and assert its data
+      //? Fetch the bet account and assert its data
       const betAccount = await program.account.bet.fetch(betPda);
       const vaultBalance = await connection.getBalance(vaultPoolPda);
       const makerBalanceAfter = await connection.getBalance(maker.publicKey);
@@ -125,19 +129,21 @@ describe("capstone-project", () => {
       assert.ok(betAccount.odds.makerOdds.eq(makerOdds));
       assert.ok(betAccount.odds.opponentOdds.eq(opponentOdds));
       assert.ok(betAccount.pricePrediction.eq(pricePrediction));
+      assert.equal(betAccount.creatorEstimate, true);
       assert.ok(betAccount.deadlineToJoin.eq(deadlineToJoin));
       assert.ok(betAccount.startTime.eq(startTime));
       assert.ok(betAccount.endTime.eq(endTime));
       assert.ok(betAccount.makerDeposit.eq(amount));
       assert.equal(betAccount.status, { findingOpponent: {} });
+      assert.equal(betAccount.feedInjector.toBase58(), new PublicKey(solUsdSwitchboardFeedDevnet).toBase58());
   })
 
-  // Cancelling the created bet for testing 
+  //? Cancelling the created bet for testing 
   it("Cancel the bet", async () => {
     const vaultBalanceBefore = await connection.getBalance(vaultPoolPda);
     const makerBalanceBefore = await connection.getBalance(maker.publicKey);
 
-    // Fetch the bet account before cancellation
+    //? Fetch the bet account before cancellation
     const betAccountBefore = await program.account.bet.fetch(betPda);
     assert.equal(betAccountBefore.status.findingOpponent, {}, "Bet status should be 'findingOpponent' before cancellation");
 
@@ -168,9 +174,9 @@ describe("capstone-project", () => {
       assert.equal(makerBalanceAfter, 100 * anchor.web3.LAMPORTS_PER_SOL);
   })
 
-  // Creation of a bet after bet cancellation
+  //? Creation of a bet after bet cancellation
   //TODO: feedInjector should be added to check the real-time data in lib.rs, bet.rs, create_bet.rs and resolve_bet.rs
-  it("Creating another bet", async () => {
+  it("Create a bet", async () => {
     const makerBalanceBefore = await connection.getBalance(maker.publicKey);
 
     const tx = await program.methods.createBet(
@@ -179,10 +185,12 @@ describe("capstone-project", () => {
       makerOdds,
       opponentOdds,
       pricePrediction,
+      creatorEstimate,
       deadlineToJoin,
       startTime,
       endTime,
-      amount).accountsPartial({
+      amount,
+      new PublicKey(solUsdSwitchboardFeedDevnet)).accountsPartial({
         maker: maker.publicKey,
         bet: betPda,
         vaultPool: vaultPoolPda,
@@ -196,7 +204,7 @@ describe("capstone-project", () => {
 
       await confirmTx(tx);
 
-      // Fetching the bet account nd assertig its data
+      //? Fetch the bet account and assert its data
       const betAccount = await program.account.bet.fetch(betPda);
       const vaultBalance = await connection.getBalance(vaultPoolPda);
       const makerBalanceAfter = await connection.getBalance(maker.publicKey);
@@ -209,11 +217,13 @@ describe("capstone-project", () => {
       assert.ok(betAccount.odds.makerOdds.eq(makerOdds));
       assert.ok(betAccount.odds.opponentOdds.eq(opponentOdds));
       assert.ok(betAccount.pricePrediction.eq(pricePrediction));
+      assert.equal(betAccount.creatorEstimate, true);
       assert.ok(betAccount.deadlineToJoin.eq(deadlineToJoin));
       assert.ok(betAccount.startTime.eq(startTime));
       assert.ok(betAccount.endTime.eq(endTime));
       assert.ok(betAccount.makerDeposit.eq(amount));
       assert.equal(betAccount.status, { findingOpponent: {} });
+      assert.equal(betAccount.feedInjector.toBase58(), new PublicKey(solUsdSwitchboardFeedDevnet).toBase58());
   })
 
   it("Accepting the bet", async () => {
@@ -250,16 +260,17 @@ describe("capstone-project", () => {
     assert.equal(treasuryBalanceAfter, feesAmount);
   })
 
-   // Simulate time passing
+   //? Simulate time passing for 5 seconds 
    it("Simulate time passing", async () => {
-    await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for 5 seconds
+    await new Promise(resolve => setTimeout(resolve, 5000)); //? Wait for 5 seconds
   });
 
   //TODO: feedInjector should be added to check the real-time data in lib.rs, bet.rs, create_bet.rs and check_winner.rs
   //& [x] lib.rs 
   //& [x] bet.rs 
   //& [x] create_bet.rs 
-  // Checking the winner after some time has passed
+
+  //? Checking the winner after some time has passed
   it("Checking the winner", async () => {
   const tx = await program.methods.checkWinner(betSeed)
     .accountsPartial({
@@ -267,15 +278,23 @@ describe("capstone-project", () => {
       maker: maker.publicKey,
       opponent: betTaker.publicKey,
       bet: betPda,
+      feedInjector: new PublicKey(solUsdSwitchboardFeedDevnet),
     })
     .signers([admin])
     .rpc();
 
     const betAccount = await program.account.bet.fetch(betPda);
+
+    await confirmTx(tx);
+  })
+
+  //? claiming prizes to whomever has won the prediction
+  it("Claiming the rewards", async () => {
+    
   })
 });
   
-// Helper functions
+//? Helper functions
 const confirmTx = async (signature: string) => {
   const latestBlockhash = await anchor.getProvider().connection.getLatestBlockhash();
   await anchor.getProvider().connection.confirmTransaction(
