@@ -59,14 +59,14 @@ describe("capstone-project", () => {
   );
 
    //? Airdrop sol to admin, maker, betTaker
-   it("Airdrop some sol", async () => {
+   it("Airdropped some SOL to all the required wallets", async () => {
     await Promise.all([ admin, maker, betTaker].map(async (k) => {
       return await anchor.getProvider().connection.requestAirdrop(k.publicKey, 100 * anchor.web3.LAMPORTS_PER_SOL)
     })).then(confirmTxs);
   });
 
   //? Initializing the house 
-  it("Initialize the protocol", async () => {
+  it("Initializes the Synora protocol", async () => {
     const tx = await program.methods.initializeProtocol(fees)
       .accountsPartial({
         admin: admin.publicKey,
@@ -88,7 +88,7 @@ describe("capstone-project", () => {
 
   //? Start creating the bet 
   //TODO: feedInjector should be added to check the real-time data in lib.rs, bet.rs, create_bet.rs and resolve_bet.rs
-  it("Create a bet", async () => {
+  it("Bet creator creates the bet", async () => {
     const makerBalanceBefore = await connection.getBalance(maker.publicKey);
 
     const tx = await program.methods.createBet(
@@ -139,7 +139,7 @@ describe("capstone-project", () => {
   });
 
   //? Cancelling the created bet for testing 
-  it("Cancel the bet", async () => {
+  it("Cancelling the bet in case of a mishap", async () => {
     const vaultBalanceBefore = await connection.getBalance(vaultPoolPda);
     const makerBalanceBefore = await connection.getBalance(maker.publicKey);
 
@@ -176,7 +176,7 @@ describe("capstone-project", () => {
 
   //? Creation of a bet after bet cancellation
   //TODO: feedInjector should be added to check the real-time data in lib.rs, bet.rs, create_bet.rs and resolve_bet.rs
-  it("Create a bet", async () => {
+  it("Bet maker creating another bet after cancelling", async () => {
     const makerBalanceBefore = await connection.getBalance(maker.publicKey);
 
     const tx = await program.methods.createBet(
@@ -226,7 +226,7 @@ describe("capstone-project", () => {
       assert.equal(betAccount.feedInjector.toBase58(), new PublicKey(solUsdSwitchboardFeedDevnet).toBase58());
   });
 
-  it("Accepting the bet", async () => {
+  it("Opponent accepting the bet once he joins in", async () => {
     const takerBalanceBefore = await connection.getBalance(betTaker.publicKey);
     const vaultBalanceBefore = await connection.getBalance(vaultPoolPda);
 
@@ -261,7 +261,7 @@ describe("capstone-project", () => {
   });
 
    //? Simulate time passing for 5 seconds 
-   it("Simulate time passing", async () => {
+   it("Simulating time passing for 5 seconds", async () => {
     await new Promise(resolve => setTimeout(resolve, 5000)); //? Wait for 5 seconds
   });
 
@@ -271,7 +271,7 @@ describe("capstone-project", () => {
   //& [x] create_bet.rs 
 
   //? Checking the winner after some time has passed
-  it("Checking the winner", async () => {
+  it("Checking the winner once the bet ends", async () => {
   const tx = await program.methods.checkWinner(betSeed)
     .accountsPartial({
       signer: admin.publicKey,
@@ -291,7 +291,7 @@ describe("capstone-project", () => {
   });
 
   //? claiming prizes to whomever has won the prediction
-  it("Claiming the rewards", async () => {
+  it("Claiming the rewards after assigning the winner", async () => {
     const vaultPoolBalanceBefore = await connection.getBalance(vaultPoolPda);
     const tx = await program.methods.claimPrize(betSeed)
       .accountsPartial({
@@ -322,7 +322,7 @@ describe("capstone-project", () => {
       }
   });
 
-  it("Withdraw from treasury", async () => {
+  it("Withdraw funds from treasury after claiming", async () => {
     const adminBalanceBefore = await connection.getBalance(admin.publicKey);
     const treasuryBalanceBefore = await connection.getBalance(treasuryPda);
 
