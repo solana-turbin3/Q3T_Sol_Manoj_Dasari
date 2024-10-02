@@ -24,7 +24,7 @@ describe("capstone-project", () => {
   console.log("maker wallet: ", maker.publicKey.toBase58());
   console.log("opponent wallet: ", betTaker.publicKey.toBase58());
 
-  //? defining the constants
+  //? defining the constants/test parameters
   const betSeed = new anchor.BN(100);
   const tokenMint = anchor.web3.Keypair.generate().publicKey;
   const makerOdds = new anchor.BN(2);
@@ -84,7 +84,7 @@ describe("capstone-project", () => {
 
       assert.equal(initializedBetHouse.admin.toBase58(), admin.publicKey.toBase58());
       assert.equal(initializedBetHouse.protoclFees, fees);
-  })
+  });
 
   //? Start creating the bet 
   //TODO: feedInjector should be added to check the real-time data in lib.rs, bet.rs, create_bet.rs and resolve_bet.rs
@@ -136,7 +136,7 @@ describe("capstone-project", () => {
       assert.ok(betAccount.makerDeposit.eq(amount));
       assert.equal(betAccount.status, { findingOpponent: {} });
       assert.equal(betAccount.feedInjector.toBase58(), new PublicKey(solUsdSwitchboardFeedDevnet).toBase58());
-  })
+  });
 
   //? Cancelling the created bet for testing 
   it("Cancel the bet", async () => {
@@ -172,7 +172,7 @@ describe("capstone-project", () => {
       const makerBalanceAfter = await connection.getBalance(maker.publicKey);
       assert.equal(vaultBalanceAfter, 0);
       assert.equal(makerBalanceAfter, 100 * anchor.web3.LAMPORTS_PER_SOL);
-  })
+  });
 
   //? Creation of a bet after bet cancellation
   //TODO: feedInjector should be added to check the real-time data in lib.rs, bet.rs, create_bet.rs and resolve_bet.rs
@@ -224,7 +224,7 @@ describe("capstone-project", () => {
       assert.ok(betAccount.makerDeposit.eq(amount));
       assert.equal(betAccount.status, { findingOpponent: {} });
       assert.equal(betAccount.feedInjector.toBase58(), new PublicKey(solUsdSwitchboardFeedDevnet).toBase58());
-  })
+  });
 
   it("Accepting the bet", async () => {
     const takerBalanceBefore = await connection.getBalance(betTaker.publicKey);
@@ -258,7 +258,7 @@ describe("capstone-project", () => {
     assert.equal(vaultBalanceAfter, vaultBalanceBefore + amount.toNumber() - feesAmount);
     assert.isAtMost(takerBalanceAfter, takerBalanceBefore - amount.toNumber());
     assert.equal(treasuryBalanceAfter, feesAmount);
-  })
+  });
 
    //? Simulate time passing for 5 seconds 
    it("Simulate time passing", async () => {
@@ -282,24 +282,73 @@ describe("capstone-project", () => {
     })
     .signers([admin])
     .rpc();
+    console.log("Transaction signature - ", tx);
+    await confirmTx(tx);
 
     const betAccount = await program.account.bet.fetch(betPda);
-
-    await confirmTx(tx);
-  })
+    assert.equal(betAccount.status.completed !== undefined, true);
+    assert.isNotNull(betAccount.winner);
+  });
 
   //? claiming prizes to whomever has won the prediction
   it("Claiming the rewards", async () => {
     const vaultPoolBalanceBefore = await connection.getBalance(vaultPoolPda);
     const tx = await program.methods.claimPrize(betSeed)
       .accountsPartial({
-        winner: maker.publicKey,
+        winner: maker.publicKey, // claim as bet maker since the check winner(dummy impl) always resolves to the maker
+        maker: maker.publicKey,
+        bet: betPda,
+        vaultPool: vaultPoolPda,
+        systemProgram: SystemProgram.programId,
       })
+      .signers([maker])
+      .rpc();
+
+      console.log("Winner's Transaction Signature", tx);
+
+      await confirmTx(tx);
+
+      const winnerBalanceAfter = await connection.getBalance(maker.publicKey);
+      const vaultPoolBalanceAfter = await connection.getBalance(vaultPoolPda);
+
+      assert.equal(vaultPoolBalanceAfter, 0);
+      assert.equal(winnerBalanceAfter, 100 * anchor.web3.LAMPORTS_PER_SOL - amount.toNumber() + vaultPoolBalanceBefore);
+
+      try {
+        await program.account.bet.fetch(betPda);
+        assert.fail("Bet account should have been closed");
+      } catch (error) {
+        assert.include(error.message, "Account does not exist");
+      }
+  });
+
+  it("Withdraw from treasury", async () => {
+    const adminBalanceBefore = await connection.getBalance(admin.publicKey);
+    const treasuryBalanceBefore = await connection.getBalance(treasuryPda);
+
+    const tx = await program.methods.withdrawTreasury()
+      .accountsPartial({
+        admin: admin.publicKey,
+        house: housePda,
+        treasury: treasuryPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([admin])
+      .rpc();
+
+      console.log("Withdraw Transaction Signature - ", tx);
+
+      await confirmTx(tx);
+
+      const adminBalanceAfter = await connection.getBalance(admin.publicKey);
+      const treasuryBalanceAfter = await connection.getBalance(treasuryPda);
+      assert.isAbove(adminBalanceAfter, adminBalanceBefore);
+      assert.equal(treasuryBalanceAfter, 0);
   })
 });
   
 //? Helper functions
-const confirmTx = async (signature: string) => {
+const confirmTx = async (signature: string) => { // Transaction confirmation
   const latestBlockhash = await anchor.getProvider().connection.getLatestBlockhash();
   await anchor.getProvider().connection.confirmTransaction(
     {
@@ -309,6 +358,6 @@ const confirmTx = async (signature: string) => {
     commitment
   )
 }
-const confirmTxs = async (signatures: string[]) => {
-  await Promise.all(signatures.map(confirmTx))
+const confirmTxs = async (signatures: string[]) => { // batch transaction processing 
+  await Promise.all(signatures.map(confirmTx)) // parrallel processing 
 }

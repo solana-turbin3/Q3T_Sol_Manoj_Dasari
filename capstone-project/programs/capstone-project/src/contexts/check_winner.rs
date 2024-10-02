@@ -91,21 +91,21 @@ impl<'info> CheckWinner<'info> {
             Err(_e) => return Err(Errors::NoFeedData.into()),
         };
         //? Defining max stale slots and minimum samples
-        let max_stale_slots = 300;
-        let min_samples = 1;
+        let max_stale_slots = 300; // to prevent network delays
+        let min_samples = 1; // latency issues
         let price_to_decimal = match parsed_feed.get_value(&Clock::get()?, max_stale_slots, min_samples, true) {
             Ok(price_to_decimal) => price_to_decimal,
             Err(_e) => return Err(Errors::NoValueFound.into()),
         };
         //? price conversion to u64 and multiplied by 10^10
-        let multiplied_price = Decimal::checked_mul(price_to_decimal, Decimal::from_i64(10_i64.pow(10)).unwrap()).unwrap();
+        let multiplied_price = Decimal::checked_mul(price_to_decimal, Decimal::from_i64(10_i64.pow(10)).unwrap()).unwrap(); // to prevet decimaa precision
 
         let price_u64 = Decimal::to_u64(&multiplied_price)
             .ok_or(Errors::NoValueFound)?
             .checked_mul(10_u64.pow(10))
             .ok_or(Errors::PriceConversionOverflow)?;
 
-        let initiator_wins = if self.bet.creator_estimate {
+        let initiator_wins = if self.bet.creator_estimate { // direction of the bet >= or <
             price_u64 >= self.bet.price_prediction.try_into().unwrap()
         } else {
             price_u64 < self.bet.price_prediction.try_into().unwrap()
