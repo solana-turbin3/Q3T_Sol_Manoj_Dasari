@@ -2,6 +2,13 @@ import { Keypair, PublicKey, Connection} from "@solana/web3.js";
 import {BN, web3} from "@coral-xyz/anchor";
 
 //TODO - import admin, maker, taker wallets
+import adminWallet from '../wallets/admin.json';
+import makerWallet from '../wallets/maker.json';
+import takerWallet from '../wallets/taker.json';
+
+export const admin = Keypair.fromSecretKey(new Uint8Array(adminWallet));
+export const betCreator = Keypair.fromSecretKey(new Uint8Array(makerWallet));
+export const betTaker = Keypair.fromSecretKey(new Uint8Array(takerWallet));
 
 //TODO - airdropping and filling up the wallets with sufficient SOL funds
 
@@ -27,4 +34,4 @@ const programId = new PublicKey("E5kv2j41SfsrZyCeEohk8SQ3i71Yzgiv32ey8ekeL5mQ");
 
 //TODO - bet program
 
-//TODO - acount PDAs
+//TODO - account PDAs

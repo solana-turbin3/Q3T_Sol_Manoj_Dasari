@@ -3,10 +3,20 @@
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
-    "test": "mocha -r ts-node/register ./test/*.ts"
+    "test": "mocha -r ts-node/register ./test/*.ts",
+    "create-bet": "ts-node scripts/create-bet.ts ",
+    "accept-bet": "ts-node scripts/accept-bet.ts",
+    "check-winner": "ts-node scripts/check-winner.ts",
+    "cancel-bet": "ts-node scripts/cancel-bet.ts",
+    "claim-prize": "ts-node scripts/claim-prize.ts",
+    "withdraw-treasury": "ts-node scripts/withdraw-treasury.ts",
+    "init": "ts-node scripts/init.ts"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.30.1"
+    "@coral-xyz/anchor": "^0.30.1",
+    "@switchboard-xyz/on-demand": "^1.2.41",
+    "bs58": "^6.0.0",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.0",
