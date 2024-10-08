@@ -4,20 +4,14 @@
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-capstone_project = "E5kv2j41SfsrZyCeEohk8SQ3i71Yzgiv32ey8ekeL5mQ"
-
 [programs.devnet]
-capstone_project = "E5kv2j41SfsrZyCeEohk8SQ3i71Yzgiv32ey8ekeL5mQ"
-
-[programs.mainnet]
-capstone_project = "E5kv2j41SfsrZyCeEohk8SQ3i71Yzgiv32ey8ekeL5mQ"
+capstone_project = "8iJXBQKgr8nTc4WDVSzEivymABbsbEdLAD6SuCukjX9J"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

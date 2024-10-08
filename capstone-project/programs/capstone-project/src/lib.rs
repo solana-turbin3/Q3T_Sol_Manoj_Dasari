@@ -8,7 +8,7 @@ pub use contexts::*;
 pub use errors::*;
 pub use state::*;
 
-declare_id!("E5kv2j41SfsrZyCeEohk8SQ3i71Yzgiv32ey8ekeL5mQ");
+declare_id!("8iJXBQKgr8nTc4WDVSzEivymABbsbEdLAD6SuCukjX9J");
 
 #[program]
 pub mod prediction_market {
